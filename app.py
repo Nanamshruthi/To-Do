@@ -12,8 +12,16 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key-for-
 #app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///todo.db"
 database_url = os.environ.get('DATABASE_URL')
 
-if database_url and database_url.startswith("postgres://"):
-    db_uri = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+if database_url :
+    if database_url.startswith("postgres://"):
+        # Handle the legacy prefix
+        db_uri = database_url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif database_url.startswith("postgresql://"):
+        # Handle the standard prefix
+        db_uri = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    else:
+        # Fallback for unexpected format
+        db_uri = database_url
     app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
         'pool_pre_ping': True,
@@ -323,6 +331,7 @@ if __name__ == "__main__":
         db.create_all()
         print("🚀 Starting Flask server...")
     app.run(debug=True)
+
 
 
 
