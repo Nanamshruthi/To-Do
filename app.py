@@ -25,25 +25,44 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-# ----------------- MODELS -----------------
-class User(db.Model, UserMixin):
+# app.py (Replace your existing models with these)
+
+# --- MODELS ---
+
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), nullable=False, unique=True)
-    email = db.Column(db.String(120), nullable=False, unique=True)
-    password = db.Column(db.String(200), nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    # FIX: Added server_default to ensure PostgreSQL sets the creation time automatically
+    date_created = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+    tasks = db.relationship('Task', backref='author', lazy=True)
+    posts = db.relationship('BlogPost', backref='author', lazy=True)
+
+    def __repr__(self):
+        return f"User('{self.username}', '{self.id}')"
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    completed = db.Column(db.Boolean, default=False)
+    due_date = db.Column(db.Date, nullable=True)
+    is_complete = db.Column(db.Boolean, default=False)
+    # FIX: Added server_default
+    date_created = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
-    # NEW FIELD: due_date
-    due_date = db.Column(db.Date, nullable=True) # Can be null if no due date set
-    
+
     def __repr__(self):
-        return f'<Task {self.id}>'
+        return f"Task('{self.id}', '{self.is_complete}')"
+
+class BlogPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    # FIX: Added server_default
+    date_posted = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Post('{self.title}', '{self.date_posted}')"
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -288,5 +307,6 @@ if __name__ == "__main__":
         db.create_all()
         print("🚀 Starting Flask server...")
     app.run(debug=True)
+
 
 
