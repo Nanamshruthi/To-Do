@@ -71,7 +71,7 @@ class Task(db.Model):
     #user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
-        return f"Task('{self.id}', '{self.is_content}')"
+        return f"<Task {self.id} - {self.content}>"
 
 class BlogPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -333,6 +333,7 @@ if __name__ == "__main__":
         db.create_all()
         print("🚀 Starting Flask server...")
     app.run(debug=True)
+
 
 
 
