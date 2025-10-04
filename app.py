@@ -7,13 +7,18 @@ from datetime import date, datetime
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "supersecret"
+#app.config['SECRET_KEY'] = "supersecret"
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key-for-local-testing')
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///todo.db"
+#app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///todo.db"
 database_url = os.environ.get('DATABASE_URL')
 
 if database_url:
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    db_uri = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,  # Recycle connections every 5 minutes
+    }
 else:
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///todo.db"
 
@@ -24,6 +29,10 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 # app.py (Replace your existing models with these)
 
@@ -64,9 +73,7 @@ class BlogPost(db.Model):
     def __repr__(self):
         return f"Post('{self.title}', '{self.date_posted}')"
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+
 
 # ----------------- ROUTES -----------------
 
@@ -182,6 +189,14 @@ def tasks():
         content = request.form["content"]
         due_date_str = request.form.get("due_date") # Get due date from form
         
+        due_date = None
+        if due_date_str:
+            try:
+                due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Invalid date format.', 'danger')
+                return redirect(url_for('tasks'))
+            
         if not content:
             flash("Task content cannot be empty!", "danger")
             return redirect(url_for("tasks"))
@@ -307,6 +322,5 @@ if __name__ == "__main__":
         db.create_all()
         print("🚀 Starting Flask server...")
     app.run(debug=True)
-
 
 
