@@ -41,6 +41,7 @@ def load_user(user_id):
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
     # FIX: Added server_default to ensure PostgreSQL sets the creation time automatically
     date_created = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
@@ -322,5 +323,6 @@ if __name__ == "__main__":
         db.create_all()
         print("🚀 Starting Flask server...")
     app.run(debug=True)
+
 
 
