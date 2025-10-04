@@ -7,7 +7,17 @@ from datetime import date, datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "supersecret"
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key-for-local-testing')
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///todo.db"
+database_url = os.environ.get('DATABASE_URL')
+
+if database_url:
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///todo.db"
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -277,3 +287,4 @@ if __name__ == "__main__":
         db.create_all()
         print("🚀 Starting Flask server...")
     app.run(debug=True)
+
