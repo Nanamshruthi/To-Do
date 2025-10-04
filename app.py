@@ -62,14 +62,16 @@ class User(UserMixin, db.Model):
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(200), nullable=False)
-    due_date = db.Column(db.Date, nullable=True)
-    is_complete = db.Column(db.Boolean, default=False)
-    # FIX: Added server_default
-    date_created = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    due_date = db.Column(db.Date, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    completed = db.Column(db.Boolean, default=False)
+    # FIX: Added server_default
+    #date_created = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+    #user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self):
-        return f"Task('{self.id}', '{self.is_complete}')"
+        return f"Task('{self.id}', '{self.is_content}')"
 
 class BlogPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -331,6 +333,7 @@ if __name__ == "__main__":
         db.create_all()
         print("🚀 Starting Flask server...")
     app.run(debug=True)
+
 
 
 
