@@ -1,15 +1,36 @@
 from click import password_option
 from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt # type: ignore
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user # type: ignore
+from flask_bcrypt import Bcrypt
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import date, datetime
+import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = "supersecret"
-#app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key-for-local-testing')
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///todo.db"
-#database_url = os.environ.get('DATABASE_URL')
+#app.config['SECRET_KEY'] = "supersecret"
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key-for-local-testing')
+#app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///todo.db"
+database_url = os.environ.get('DATABASE_URL')
+
+if database_url :
+    if database_url.startswith("postgres://"):
+        # Handle the legacy prefix
+        db_uri = database_url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif database_url.startswith("postgresql://"):
+        # Handle the standard prefix
+        db_uri = database_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    else:
+        # Fallback for unexpected format
+        db_uri = database_url
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,  # Recycle connections every 5 minutes
+    }
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///todo.db"
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 db = SQLAlchemy(app)
@@ -17,29 +38,51 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-# ----------------- MODELS -----------------
-class User(db.Model, UserMixin):
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+# app.py (Replace your existing models with these)
+
+# --- MODELS ---
+
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), nullable=False, unique=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
-    password = db.Column(db.String(200), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    # FIX: Added server_default to ensure PostgreSQL sets the creation time automatically
+    date_created = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+    tasks = db.relationship('Task', backref='author', lazy=True)
+    posts = db.relationship('BlogPost', backref='author', lazy=True)
+
+    def __repr__(self):
+        return f"User('{self.username}', '{self.id}')"
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    completed = db.Column(db.Boolean, default=False)
+    due_date = db.Column(db.Date, nullable=True)
+    is_complete = db.Column(db.Boolean, default=False)
+    # FIX: Added server_default
+    date_created = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
-    # NEW FIELD: due_date
-    due_date = db.Column(db.Date, nullable=True) # Can be null if no due date set
-    
-    def __repr__(self):
-        return f'<Task {self.id}>'
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+    def __repr__(self):
+        return f"Task('{self.id}', '{self.is_complete}')"
+
+class BlogPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    # FIX: Added server_default
+    date_posted = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def __repr__(self):
+        return f"Post('{self.title}', '{self.date_posted}')"
+
+
 
 # ----------------- ROUTES -----------------
 
@@ -118,7 +161,7 @@ def signup():
             db.session.add(user)
             db.session.commit()
             login_user(user)
-            flash("Signup successful!", "success")
+            flash("Signup successful! Please login.", "success")
             return redirect(url_for("tasks"))
         except Exception as e:
             db.session.rollback()
@@ -155,6 +198,14 @@ def tasks():
         content = request.form["content"]
         due_date_str = request.form.get("due_date") # Get due date from form
         
+        due_date = None
+        if due_date_str:
+            try:
+                due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                flash('Invalid date format.', 'danger')
+                return redirect(url_for('tasks'))
+            
         if not content:
             flash("Task content cannot be empty!", "danger")
             return redirect(url_for("tasks"))
@@ -281,8 +332,6 @@ if __name__ == "__main__":
         print("🚀 Starting Flask server...")
     app.run(debug=True)
 
-with app.app_context():
-    db.create_all()
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
+
