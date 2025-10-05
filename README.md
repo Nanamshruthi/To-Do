@@ -1,4 +1,4 @@
-<img width="1919" height="910" alt="Screenshot 2025-10-05 122009" src="https://github.com/user-attachments/assets/82da4f15-da76-4bde-8e16-a246eab2ee64" /># To-Do List Web Application
+# To-Do List Web Application
 
 A comprehensive, full-stack To-Do list web application designed for personal productivity and built to showcase modern development skills.
 
