@@ -1,6 +1,14 @@
-# To-Do List Web Application
+<img width="1919" height="910" alt="Screenshot 2025-10-05 122009" src="https://github.com/user-attachments/assets/82da4f15-da76-4bde-8e16-a246eab2ee64" /># To-Do List Web Application
 
 A comprehensive, full-stack To-Do list web application designed for personal productivity and built to showcase modern development skills.
+
+---
+
+## 🚀 Live Demo
+
+**Try it here:**    [Live Demo](https://to-do-efso.onrender.com)
+
+---
 
 ## Features
 
@@ -13,6 +21,39 @@ A comprehensive, full-stack To-Do list web application designed for personal pro
 - **Built-in Flash Messages:** User feedback for every key action.
 - **Cloud Database:** All data stored in a managed PostgreSQL instance (e.g., on Render).
 
+---
+
+## 🗂️ Project Folder Structure
+
+```text
+To-Do/
+│
+├── app.py                # Main Flask application
+├── requirements.txt      # Python dependencies
+├── Procfile              # For deployment platforms (like Heroku/Render)
+├── .gitignore
+├── create_tables.py
+│
+├── templates/            # Jinja2 HTML templates
+│   ├── index.html
+│   ├── login.html
+│   ├── signup.html
+│   ├── tasks.html
+│   ├── about.html
+│   ├── base.html
+│   ├── edit_task.html
+│   ├── privacy.html
+│
+├── static/               # Static files (CSS, JS, images)
+│   ├── style.css
+│   ├── favicon.png
+│   └── ... (other assets)
+│
+└── README.md             # Project documentation
+```
+
+---
+
 ## Tech Stack
 
 - **Backend:** Flask (Python)
@@ -21,6 +62,8 @@ A comprehensive, full-stack To-Do list web application designed for personal pro
 - **Authentication:** Flask-Login, Bcrypt
 - **Database:** PostgreSQL (cloud-hosted)
 - **Deployment:** Compatible with Render, Heroku, etc.
+
+---
 
 ## Getting Started
 
@@ -76,6 +119,8 @@ A comprehensive, full-stack To-Do list web application designed for personal pro
 - Configure environment variables (`DATABASE_URL`, `SECRET_KEY`).
 - Use Render’s dashboard to manage and view your cloud database.
 
+---
+
 ## Usage
 
 - Sign up and log in.
@@ -83,17 +128,30 @@ A comprehensive, full-stack To-Do list web application designed for personal pro
 - Edit, delete, or mark tasks complete/incomplete.
 - Filter tasks by status using the UI.
 
+---
+
 ## Screenshots
 
-*(Add screenshots of the main UI, task list, filters, etc.)*
+<img width="1919" height="896" alt="Screenshot 2025-10-05 121817" src="https://github.com/user-attachments/assets/ee285d86-961e-49df-aba2-4e359abc084c" />
+
+---
+
+<img width="1919" height="910" alt="Screenshot 2025-10-05 122009" src="https://github.com/user-attachments/assets/7f0542c0-2a61-437e-883d-924e728614a1" />
+
+
+---
 
 ## Contributing
 
 Pull requests are welcome! Please open an issue to discuss changes or features.
 
+---
+
 ## License
 
 MIT License
+
+---
 
 ## Contact
 
