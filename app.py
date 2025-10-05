@@ -163,7 +163,7 @@ def signup():
             db.session.add(user)
             db.session.commit()
             login_user(user)
-            flash("Signup successful! Please login.", "success")
+            flash("Signup successful! Welcome!", "success")
             return redirect(url_for("tasks"))
         except Exception as e:
             db.session.rollback()
@@ -333,6 +333,7 @@ if __name__ == "__main__":
         db.create_all()
         print("🚀 Starting Flask server...")
     app.run(debug=True)
+
 
 
 
