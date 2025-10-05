@@ -323,9 +323,9 @@ def delete_task(id):
 @app.route("/logout")
 @login_required
 def logout():
-    flash("You have been logged out.", "success")
     logout_user()
-    return redirect(url_for("home"))
+    flash("You have been logged out.", "success")
+    return redirect(url_for("login"))
 
 # ----------------- MAIN -----------------
 if __name__ == "__main__":
@@ -333,6 +333,7 @@ if __name__ == "__main__":
         db.create_all()
         print("🚀 Starting Flask server...")
     app.run(debug=True)
+
 
 
 
